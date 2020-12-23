@@ -27,7 +27,7 @@ contract StrategyDAI3Pool is BaseStrategy {
     string public constant override name = "StrategyDAI3Pool";
 
     constructor(
-        address _vault,
+        address _vault, // vault is v2, address is 0xBFa4D8AA6d8a379aBFe7793399D3DdaCC5bBECBB
         address _dai,
         address _threePool,
         address _y3Pool,
@@ -43,11 +43,10 @@ contract StrategyDAI3Pool is BaseStrategy {
     }
 
     function protectedTokens() internal override view returns (address[] memory) {
-        address[] memory protected = new address[](3);
+        address[] memory protected = new address[](2);
         // dai (aka want) is already protected by default
-        protected[0] = threePool;
-        protected[1] = y3Pool;
-        protected[2] = crv3;
+        protected[0] = y3Pool;
+        protected[1] = crv3;
         return protected;
     }
 
@@ -114,7 +113,7 @@ contract StrategyDAI3Pool is BaseStrategy {
 
     // withdraw some dai from the vaults
     function _withdrawSome(uint256 _amount) internal returns (uint256) {
-        uint256 _3PoolAmount = (_amount).mul(1e18).div(ICurve(crv3).get_virtual_price());
+        uint256 _3PoolAmount = (_amount).mul(1e18).div(ICurve(threePool).get_virtual_price());
         uint256 y3PoolAmount = (_3PoolAmount).mul(1e18).div(Vault(y3Pool).getPricePerFullShare());
         Vault(y3Pool).withdraw(y3PoolAmount);
         uint256 threePoolBalance = IERC20(crv3).balanceOf(address(this));
@@ -124,15 +123,15 @@ contract StrategyDAI3Pool is BaseStrategy {
 
     // it looks like this function transfers not just "want" tokens, but all tokens
     function prepareMigration(address _newStrategy) internal override {
-        want.transfer(_newStrategy, balanceOfWant());
-        IERC20(crv3).transfer(_newStrategy, IERC20(threePool).balanceOf(address(this)));
+        // want is transferred by the base contract's migrate function
+        IERC20(crv3).transfer(_newStrategy, IERC20(crv3).balanceOf(address(this)));
         IERC20(y3Pool).transfer(_newStrategy, IERC20(y3Pool).balanceOf(address(this)));
     }
 
     // returns value of total 3pool
     function balanceOfPool() internal view returns (uint256) {
         uint256 _balance = IERC20(crv3).balanceOf(address(this));
-        uint256 ratio = ICurve(crv3).get_virtual_price();
+        uint256 ratio = ICurve(threePool).get_virtual_price();
         return (_balance).mul(ratio);
     }
 
