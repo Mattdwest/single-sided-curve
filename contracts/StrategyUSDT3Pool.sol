@@ -85,7 +85,7 @@ contract StrategyUSDT3Pool is BaseStrategy {
        uint256 _wantAvailable = balanceOfWant().sub(_debtOutstanding);
         if (_wantAvailable > 0) {
             uint256 _availableFunds = IERC20(usdt).balanceOf(address(this));
-            uint256 v = _availableFunds.mul(1e30).div(ICurve(threePool).get_virtual_price());
+            uint256 v = _availableFunds.mul(1e6).div(ICurve(threePool).get_virtual_price());
             ICurve(threePool).add_liquidity([0,0,_availableFunds], v.mul(DENOMINATOR.sub(slip)).div(DENOMINATOR));
             Vault(y3Pool).depositAll();
         }
@@ -136,7 +136,7 @@ contract StrategyUSDT3Pool is BaseStrategy {
         uint256 y3PoolAmount = (_3PoolAmount).mul(1e18).div(Vault(y3Pool).getPricePerFullShare());
         Vault(y3Pool).withdraw(y3PoolAmount);
         uint256 threePoolBalance = IERC20(crv3).balanceOf(address(this));
-        uint256 v = threePoolBalance.mul(1e30).div(ICurve(threePool).get_virtual_price());
+        uint256 v = threePoolBalance.mul(1e18).div(ICurve(threePool).get_virtual_price());
         ICurve(threePool).remove_liquidity_one_coin(threePoolBalance, 2, v);
         uint256 balanceAfter = balanceOfWant();
         return balanceAfter.sub(balanceOfWantBefore);
@@ -166,7 +166,7 @@ contract StrategyUSDT3Pool is BaseStrategy {
 
     // returns balance of usdt
     function balanceOfWant() public view returns (uint256) {
-        return IERC20(want).balanceOf(address(this));
+        return want.balanceOf(address(this));
     }
 
     function setSlip(uint _slip) external {

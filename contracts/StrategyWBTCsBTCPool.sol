@@ -84,7 +84,7 @@ contract StrategyWBTCsBTCPool is BaseStrategy {
        uint256 _wantAvailable = balanceOfWant().sub(_debtOutstanding);
         if (_wantAvailable > 0) {
             uint256 _availableFunds = IERC20(wbtc).balanceOf(address(this));
-            uint256 v = _availableFunds.mul(1e30).div(ICurve(sbtcPool).get_virtual_price());
+            uint256 v = _availableFunds.mul(1e18).div(ICurve(sbtcPool).get_virtual_price());
             ICurve(sbtcPool).add_liquidity([0,_availableFunds,0], v.mul(DENOMINATOR.sub(slip)).div(DENOMINATOR));
             Vault(ysBTC).depositAll();
         }
@@ -135,7 +135,7 @@ contract StrategyWBTCsBTCPool is BaseStrategy {
         uint256 ysBTCAmount = (_sbtcPoolAmount).mul(1e18).div(Vault(ysBTC).getPricePerFullShare());
         Vault(ysBTC).withdraw(ysBTCAmount);
         uint256 sbtcPoolBalance = IERC20(crvsBTC).balanceOf(address(this));
-        uint256 v = sbtcPoolBalance.mul(1e30).div(ICurve(sbtcPool).get_virtual_price());
+        uint256 v = sbtcPoolBalance.mul(1e18).div(ICurve(sbtcPool).get_virtual_price());
         ICurve(sbtcPool).remove_liquidity_one_coin(sbtcPoolBalance, 1, v);
         uint256 balanceAfter = balanceOfWant();
         return balanceAfter.sub(balanceOfWantBefore);
@@ -163,9 +163,9 @@ contract StrategyWBTCsBTCPool is BaseStrategy {
         return (_balance).mul(ratio);
     }
 
-    // returns balance of dai
+    // returns balance of wbtc
     function balanceOfWant() public view returns (uint256) {
-        return IERC20(want).balanceOf(address(this));
+        return want.balanceOf(address(this));
     }
 
     function setSlip(uint _slip) external {
