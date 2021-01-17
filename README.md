@@ -41,7 +41,7 @@ TODO
 - Install project dependencies:
 
 ```
-$ brownie pm install iearn-finance/yearn-vaults@0.2.0
+$ brownie pm install iearn-finance/yearn-vaults@0.2.2
 $ brownie pm install OpenZeppelin/openzeppelin-contracts@3.1.0
 ```
 
