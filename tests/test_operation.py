@@ -32,7 +32,7 @@ def test_operation(pm, chain):
     )
 
     #config yvDAI vault.
-    Vault = pm(config["dependencies"][-1]).Vault
+    Vault = pm(config["dependencies"][0]).Vault
     yUSDT3 = gov.deploy(Vault, dai, gov, rewards, "", "")
 
     threePool = Contract.from_explorer(
@@ -41,7 +41,7 @@ def test_operation(pm, chain):
     crv3 = Contract.from_explorer(
         "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490", owner=gov
     )  # crv3 token address (threePool)
-    ycrv3 = Contract.from_explorer(
+    yCRV3 = Contract.from_explorer(
         "0x9cA85572E6A3EbF24dEDd195623F188735A5179f", owner=gov
     )  # crv3 vault (threePool)
     uni = Contract.from_explorer(
@@ -51,29 +51,37 @@ def test_operation(pm, chain):
     strategy = guardian.deploy(StrategyDAI3Pool, yUSDT3, dai, threePool, uni, yCRV3)
     strategy.setStrategist(strategist)
 
-    yUSDT3.addStrategy(strategy, Wei("100000 ether"), 2 ** 256 - 1, 50, {"from": gov})
+    yUSDT3.addStrategy(strategy, Wei("1000000000 ether"), 2 ** 256 - 1, 50, {"from": gov})
 
     dai.approve(gov, Wei("1000000 ether"), {"from": gov})
-    dai.transferFrom(gov, bob, Wei("10000 ether"), {"from": gov})
-    dai.transferFrom(gov, alice, Wei("40000 ether"), {"from": gov})
+    dai.transferFrom(gov, bob, Wei("1000 ether"), {"from": gov})
+    dai.transferFrom(gov, alice, Wei("4000 ether"), {"from": gov})
     dai.approve(yUSDT3, Wei("1000000 ether"), {"from": bob})
     dai.approve(yUSDT3, Wei("1000000 ether"), {"from": alice})
     crv3.approve(gov, Wei("1000000 ether"), {"from": gov})
+    yUSDT3.approve(gov, Wei("1000000 ether"), {"from": gov})
+    crv3.approve(yCRV3, Wei("1000000 ether"), {"from": gov})
+    dai.approve(threePool, Wei("1000000 ether"), {"from": gov})
 
+    #users deposit to vault
     yUSDT3.deposit(Wei("1000 ether"), {"from": bob})
     yUSDT3.deposit(Wei("4000 ether"), {"from": alice})
 
-    a = dai.balanceOf(address(bob))
-    b = dai.balanceOf(address(alice))
+    #a = dai.balanceOf(address(bob))
+    #b = dai.balanceOf(address(alice))
 
-    print(a)
-    print(b)
+    #print(a)
+    #print(b)
+
+    chain.mine(1)
+
+    strategy.harvest({"from": gov})
 
     assert 1 == 2
 
     ##crv3.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
     ##crv3.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
-    #crv3.approve(ycrv3, Wei("1000000 ether"), {"from": strategy})
+
 
     #yUSDT.deposit(Wei("100000 ether"), {"from": bob})
     #yUSDT.deposit(Wei("788000 ether"), {"from": alice})
