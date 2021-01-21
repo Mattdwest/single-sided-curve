@@ -44,11 +44,11 @@ def test_operation(pm, chain):
     yCRV3 = Contract.from_explorer(
         "0x9cA85572E6A3EbF24dEDd195623F188735A5179f", owner=gov
     )  # crv3 vault (threePool)
-    uni = Contract.from_explorer(
-        "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", owner=gov
-    )  # UNI router v2
+   # uni = Contract.from_explorer(
+      #  "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", owner=gov
+    #)  # UNI router v2
 
-    strategy = guardian.deploy(StrategyDAI3Pool, yUSDT3, dai, threePool, uni, yCRV3)
+    strategy = guardian.deploy(StrategyDAI3Pool, yUSDT3, dai, threePool,  yCRV3, crv3)
     strategy.setStrategist(strategist)
 
     yUSDT3.addStrategy(strategy, Wei("1000000000 ether"), 2 ** 256 - 1, 50, {"from": gov})
@@ -76,6 +76,19 @@ def test_operation(pm, chain):
     chain.mine(1)
 
     strategy.harvest({"from": gov})
+
+    yUSDT3.withdraw({"from": bob})
+
+    assert dai.balanceOf(bob) > 0
+    assert dai.balanceOf(strategy) == 0
+    assert dai.balanceOf(alice) == 0
+
+    t = yUSDT3.withdraw({"from": alice})
+
+    t.call_trace()
+
+    assert dai.balanceOf(alice) > 0
+    assert dai.balanceOf(strategy) == 0
 
     assert 1 == 2
 
