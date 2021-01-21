@@ -6,6 +6,7 @@ import pytest
 from brownie import Wei, accounts, Contract, config
 from brownie import StrategyDAI3Pool
 
+
 @pytest.mark.require_network("mainnet-fork")
 def test_shutdown(pm, chain):
     dai_liquidity = accounts.at(
@@ -24,11 +25,9 @@ def test_shutdown(pm, chain):
     )  # DAI token
 
     dai.approve(dai_liquidity, Wei("1000000 ether"), {"from": dai_liquidity})
-    dai.transferFrom(
-        dai_liquidity, gov, Wei("10000 ether"), {"from": dai_liquidity}
-    )
+    dai.transferFrom(dai_liquidity, gov, Wei("10000 ether"), {"from": dai_liquidity})
 
-    #config yvDAI vault.
+    # config yvDAI vault.
     Vault = pm(config["dependencies"][-1]).Vault
     yUSDT3 = gov.deploy(Vault, dai, gov, rewards, "", "")
 
@@ -50,31 +49,29 @@ def test_shutdown(pm, chain):
 
     yUSDT3.addStrategy(strategy, Wei("100000 ether"), 2 ** 256 - 1, 50, {"from": gov})
 
-    #dai.approve(gov, Wei("1000000 ether"), {"from": gov})
-    #dai.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
-    #dai.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
-    #dai.approve(yUSDT3, Wei("1000000 ether"), {"from": bob})
-    #dai.approve(yUSDT3, Wei("1000000 ether"), {"from": alice})
-    #crv3.approve(gov, Wei("1000000 ether"), {"from": gov})
+    # dai.approve(gov, Wei("1000000 ether"), {"from": gov})
+    # dai.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
+    # dai.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
+    # dai.approve(yUSDT3, Wei("1000000 ether"), {"from": bob})
+    # dai.approve(yUSDT3, Wei("1000000 ether"), {"from": alice})
+    # crv3.approve(gov, Wei("1000000 ether"), {"from": gov})
     ##crv3.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
     ##crv3.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
-    #crv3.approve(ycrv3, Wei("1000000 ether"), {"from": strategy})
+    # crv3.approve(ycrv3, Wei("1000000 ether"), {"from": strategy})
 
-    #yUSDT.deposit(Wei("100000 ether"), {"from": bob})
-    #yUSDT.deposit(Wei("788000 ether"), {"from": alice})
+    # yUSDT.deposit(Wei("100000 ether"), {"from": bob})
+    # yUSDT.deposit(Wei("788000 ether"), {"from": alice})
 
+    # strategy.harvest()
 
+    # assert dai.balanceOf(strategy) == 0
+    # assert yUSDT3.balanceOf(strategy) > 0
+    # assert ycrv3.balanceOf(strategy) > 0
 
-    #strategy.harvest()
-
-    #assert dai.balanceOf(strategy) == 0
-    #assert yUSDT3.balanceOf(strategy) > 0
-    #assert ycrv3.balanceOf(strategy) > 0
-
-    #ycrv3.transferFrom(gov, strategy, Wei("1000 ether"), {"from":gov})
-    #strategy.harvest({"from": gov})
+    # ycrv3.transferFrom(gov, strategy, Wei("1000 ether"), {"from":gov})
+    # strategy.harvest({"from": gov})
 
     # We should have made profit
-    #assert yUSDT3.pricePerShare() > 1
+    # assert yUSDT3.pricePerShare() > 1
 
-    #pass
+    # pass

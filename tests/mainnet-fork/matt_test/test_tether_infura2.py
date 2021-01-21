@@ -53,19 +53,19 @@ def test_tether_strategy_infura(pm, chain):
     tether.transferFrom(gov, alice, Wei("900 ether"), {"from": gov})
     tether.approve(yUSDT3, Wei("1000 ether"), {"from": bob})
     tether.approve(yUSDT3, Wei("1000 ether"), {"from": alice})
-    #crv3.approve(yCRV3, Wei("1000000000 ether"), {"from": strategy})
+    # crv3.approve(yCRV3, Wei("1000000000 ether"), {"from": strategy})
 
     yUSDT3.deposit(Wei("100 ether"), {"from": bob})
     yUSDT3.deposit(Wei("900 ether"), {"from": alice})
-   # strategy.harvest()
+    # strategy.harvest()
 
-    #rHegic.approve(gov, Wei("1000 ether"), {"from": gov})
+    # rHegic.approve(gov, Wei("1000 ether"), {"from": gov})
 
     # TODO: Instead of sending rhegic to the strategy directly,
     # we should push the clock forward to grab rhegic from Hegic protocol
-    #rHegic.transferFrom(gov, strategy, Wei("100 ether"), {"from": gov})
+    # rHegic.transferFrom(gov, strategy, Wei("100 ether"), {"from": gov})
 
-    #strategy.harvest({"from": gov})
+    # strategy.harvest({"from": gov})
 
     assert 1 == 2
 
@@ -77,6 +77,6 @@ def test_tether_strategy_infura(pm, chain):
     strategy.harvest({"from": gov})
 
     # We should have made profit
-    assert yUSDT3.pricePerShare()/1e18 > 1
+    assert yUSDT3.pricePerShare() / 1e18 > 1
 
     assert 1 == 2

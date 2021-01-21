@@ -84,24 +84,24 @@ def test_loss(pm, chain):
     assert ethPoolStaking.balanceOf(strategy) > 0
 
     # We should have made profit
-    assert yEthLP.pricePerShare()/1e18 > 1
+    assert yEthLP.pricePerShare() / 1e18 > 1
 
-    chain.sleep(3600*24*15) # 15 days
+    chain.sleep(3600 * 24 * 15)  # 15 days
     chain.mine(1)
 
     # This should work by doing it by hand since exitPosition is not working
-    #strategy.setEmergencyExit({"from": gov})
-    #strategy.harvest({"from": gov})
+    # strategy.setEmergencyExit({"from": gov})
+    # strategy.harvest({"from": gov})
 
     # Withdraw funds
     pool = Contract.from_explorer(strategy.ethPool())
     staking = Contract.from_explorer(strategy.ethPoolStaking())
-    staking.withdraw(staking.balanceOf(strategy), {'from': strategy})
-    pool.withdraw(pool.shareOf(strategy), pool.balanceOf(strategy), {'from': strategy})
+    staking.withdraw(staking.balanceOf(strategy), {"from": strategy})
+    pool.withdraw(pool.shareOf(strategy), pool.balanceOf(strategy), {"from": strategy})
 
     # revoke, steal weth and let's see losses
-    yEthLP.revokeStrategy(strategy, {'from': gov})
-    weth.transfer(gov, weth.balanceOf(strategy), {'from': strategy})
+    yEthLP.revokeStrategy(strategy, {"from": gov})
+    weth.transfer(gov, weth.balanceOf(strategy), {"from": strategy})
     strategy.harvest({"from": gov})
 
-    assert yEthLP.strategies(strategy).dict()['totalLoss']>0
+    assert yEthLP.strategies(strategy).dict()["totalLoss"] > 0

@@ -52,14 +52,12 @@ def test_usdt_strategy_infura(pm):
     tether.approve(yUSDT3, Wei("1000000 ether"), {"from": bob})
     tether.approve(yUSDT3, Wei("1000000 ether"), {"from": alice})
     crv3.approve(gov, Wei("1000000 ether"), {"from": gov})
-    #crv3.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
-    #crv3.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
+    # crv3.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
+    # crv3.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
     crv3.approve(ycrv3, Wei("1000000 ether"), {"from": strategy})
 
     yUSDT.deposit(Wei("100000 ether"), {"from": bob})
     yUSDT.deposit(Wei("788000 ether"), {"from": alice})
-
-
 
     strategy.harvest()
 
@@ -67,7 +65,7 @@ def test_usdt_strategy_infura(pm):
     assert yUSDT3.balanceOf(strategy) > 0
     assert ycrv3.balanceOf(strategy) > 0
 
-    ycrv3.transferFrom(gov, strategy, Wei("1000 ether"), {"from":gov})
+    ycrv3.transferFrom(gov, strategy, Wei("1000 ether"), {"from": gov})
     strategy.harvest({"from": gov})
 
     # We should have made profit

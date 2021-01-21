@@ -9,6 +9,7 @@ import pytest
 from brownie import Wei, accounts, Contract, config
 from brownie import StrategyDAI3Pool
 
+
 @pytest.mark.require_network("mainnet-fork")
 def test_operation(pm, chain):
     dai_liquidity = accounts.at(
@@ -22,36 +23,34 @@ def test_operation(pm, chain):
     alice = accounts[6]
     strategist = accounts[7]
 
-    dai = Contract.from_explorer(
-        "0x6b175474e89094c44da98b954eedeac495271d0f", owner=gov
-    )  # DAI token
+    dai = Contract("0x6b175474e89094c44da98b954eedeac495271d0f", owner=gov)  # DAI token
 
     dai.approve(dai_liquidity, Wei("1000000 ether"), {"from": dai_liquidity})
-    dai.transferFrom(
-        dai_liquidity, gov, Wei("10000 ether"), {"from": dai_liquidity}
-    )
+    dai.transferFrom(dai_liquidity, gov, Wei("10000 ether"), {"from": dai_liquidity})
 
-    #config yvDAI vault.
+    # config yvDAI vault.
     Vault = pm(config["dependencies"][0]).Vault
     yUSDT3 = gov.deploy(Vault, dai, gov, rewards, "", "")
 
-    threePool = Contract.from_explorer(
+    threePool = Contract(
         "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", owner=gov
     )  # crv3 pool address (threePool)
-    crv3 = Contract.from_explorer(
+    crv3 = Contract(
         "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490", owner=gov
     )  # crv3 token address (threePool)
-    yCRV3 = Contract.from_explorer(
+    yCRV3 = Contract(
         "0x9cA85572E6A3EbF24dEDd195623F188735A5179f", owner=gov
     )  # crv3 vault (threePool)
-   # uni = Contract.from_explorer(
-      #  "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", owner=gov
-    #)  # UNI router v2
+    # uni = Contract.from_explorer(
+    #  "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", owner=gov
+    # )  # UNI router v2
 
-    strategy = guardian.deploy(StrategyDAI3Pool, yUSDT3, dai, threePool,  yCRV3, crv3)
+    strategy = guardian.deploy(StrategyDAI3Pool, yUSDT3, dai, threePool, yCRV3, crv3)
     strategy.setStrategist(strategist)
 
-    yUSDT3.addStrategy(strategy, Wei("1000000000 ether"), 2 ** 256 - 1, 50, {"from": gov})
+    yUSDT3.addStrategy(
+        strategy, Wei("1000000000 ether"), 2 ** 256 - 1, 50, {"from": gov}
+    )
 
     dai.approve(gov, Wei("1000000 ether"), {"from": gov})
     dai.transferFrom(gov, bob, Wei("1000 ether"), {"from": gov})
@@ -63,15 +62,15 @@ def test_operation(pm, chain):
     crv3.approve(yCRV3, Wei("1000000 ether"), {"from": gov})
     dai.approve(threePool, Wei("1000000 ether"), {"from": gov})
 
-    #users deposit to vault
+    # users deposit to vault
     yUSDT3.deposit(Wei("1000 ether"), {"from": bob})
     yUSDT3.deposit(Wei("4000 ether"), {"from": alice})
 
-    #a = dai.balanceOf(address(bob))
-    #b = dai.balanceOf(address(alice))
+    # a = dai.balanceOf(address(bob))
+    # b = dai.balanceOf(address(alice))
 
-    #print(a)
-    #print(b)
+    # print(a)
+    # print(b)
 
     chain.mine(1)
 
@@ -95,22 +94,19 @@ def test_operation(pm, chain):
     ##crv3.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
     ##crv3.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
 
+    # yUSDT.deposit(Wei("100000 ether"), {"from": bob})
+    # yUSDT.deposit(Wei("788000 ether"), {"from": alice})
 
-    #yUSDT.deposit(Wei("100000 ether"), {"from": bob})
-    #yUSDT.deposit(Wei("788000 ether"), {"from": alice})
+    # strategy.harvest()
 
+    # assert dai.balanceOf(strategy) == 0
+    # assert yUSDT3.balanceOf(strategy) > 0
+    # assert ycrv3.balanceOf(strategy) > 0
 
-
-    #strategy.harvest()
-
-    #assert dai.balanceOf(strategy) == 0
-    #assert yUSDT3.balanceOf(strategy) > 0
-    #assert ycrv3.balanceOf(strategy) > 0
-
-    #ycrv3.transferFrom(gov, strategy, Wei("1000 ether"), {"from":gov})
-    #strategy.harvest({"from": gov})
+    # ycrv3.transferFrom(gov, strategy, Wei("1000 ether"), {"from":gov})
+    # strategy.harvest({"from": gov})
 
     # We should have made profit
-    #assert yUSDT3.pricePerShare() > 1
+    # assert yUSDT3.pricePerShare() > 1
 
-    #pass
+    # pass

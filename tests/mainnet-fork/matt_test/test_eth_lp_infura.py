@@ -83,6 +83,5 @@ def test_rhegic_strategy_infura(pm, chain):
     assert ethPool.balanceOf(strategy) == 0
     assert ethPoolStaking.balanceOf(strategy) > 0
 
-
     # We should have made profit
-    assert yEthLP.pricePerShare()/1e18 > 1
+    assert yEthLP.pricePerShare() / 1e18 > 1
