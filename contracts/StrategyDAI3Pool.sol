@@ -30,6 +30,9 @@ contract StrategyDAI3Pool is BaseStrategy {
     uint constant public DENOMINATOR = 10000;
     uint public slip = 100;
 
+    // tracking value accrual
+    uint public ppsTrack = 0;
+
     constructor(
         address _vault, // vault is v2, address is 0xBFa4D8AA6d8a379aBFe7793399D3DdaCC5bBECBB
         address _dai,
@@ -66,9 +69,13 @@ contract StrategyDAI3Pool is BaseStrategy {
            _debtPayment = Math.min(_amountFreed, _debtOutstanding);
         }
 
-        // harvest() does not require any action on behalf of this strategy, so profit each harvest is zero.
-        uint256 balanceOfWantBefore = balanceOfWant();
-        _profit = balanceOfWant().sub(balanceOfWantBefore);
+        // harvest() does not require any action on behalf of this strategy, so we will track profit by estimated total assets.
+        uint256 totalValueBefore = IERC20(y3Pool).balanceOf(address(this)).mul(ppsTrack);
+        uint256 newPPS = Vault(y3Pool).getPricePerFullShare().div(1e18);
+        uint256 totalValueAfter = IERC20(y3Pool).balanceOf(address(this)).mul(newPPS);
+        uint256 _preProfit = totalValueAfter.sub(totalValueBefore);
+        _profit = (_preProfit).mul(995).div(1000);
+        setTrack();
 
         //harvest() also does not generate losses. Funds stay in yvCRV3 vault if not performing debt repayment.
         _loss == 0;
@@ -108,14 +115,21 @@ contract StrategyDAI3Pool is BaseStrategy {
         }
 
         // not including slippage protection for exitPosition due to its nature
-        uint256 balanceOfWantBefore = balanceOfWant();
         uint256 totalValueBefore = estimatedTotalAssets();
         Vault(y3Pool).withdrawAll();
         uint256 threePoolBalance = IERC20(crv3).balanceOf(address(this));
         ICurve(threePool).remove_liquidity_one_coin(threePoolBalance, 0, 0);
-        _profit = balanceOfWant().sub(balanceOfWantBefore);
-        _loss = totalValueBefore.sub(estimatedTotalAssets());
+        uint256 totalValueAfter = estimatedTotalAssets();
+        if (totalValueAfter > totalValueBefore) {
+        _profit = totalValueAfter.sub(totalValueBefore);
+        _loss == 0;
         }
+        if (totalValueBefore > totalValueAfter) {
+        _loss = totalValueBefore.sub(estimatedTotalAssets());
+        _profit == 0;
+        }
+        }
+
 
     //this math only deals with want, which is dai.
     function liquidatePosition(uint256 _amountNeeded) internal override returns (uint256 _amountFreed) {
@@ -151,17 +165,17 @@ contract StrategyDAI3Pool is BaseStrategy {
     }
 
     // returns value of total 3pool
-    function balanceOfPool() internal view returns (uint256) {
+    function balanceOfPool() public view returns (uint256) {
         uint256 _balance = IERC20(crv3).balanceOf(address(this));
         uint256 ratio = ICurve(threePool).get_virtual_price();
-        return (_balance).mul(ratio);
+        return (_balance).mul(ratio).div(1e18);
     }
 
     // returns value of total 3pool in vault
-    function balanceOfStake() internal view returns (uint256) {
+    function balanceOfStake() public view returns (uint256) {
         uint256 _balance = IERC20(y3Pool).balanceOf(address(this));
         uint256 ratio = Vault(y3Pool).getPricePerFullShare();
-        return (_balance).mul(ratio);
+        return (_balance).mul(ratio).div(1e18);
     }
 
     // returns balance of dai
@@ -172,6 +186,10 @@ contract StrategyDAI3Pool is BaseStrategy {
     function setSlip(uint _slip) external {
         require(msg.sender == strategist || msg.sender == governance(), "!sg");
         slip = _slip;
+    }
+
+    function setTrack() internal {
+        ppsTrack = Vault(y3Pool).getPricePerFullShare().div(1e18);
     }
 
 }
