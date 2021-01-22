@@ -70,9 +70,9 @@ contract StrategyDAI3Pool is BaseStrategy {
         }
 
         // harvest() does not require any action on behalf of this strategy, so we will track profit by estimated total assets.
-        uint256 totalValueBefore = IERC20(y3Pool).balanceOf(address(this)).mul(ppsTrack);
-        uint256 newPPS = Vault(y3Pool).getPricePerFullShare().div(1e18);
-        uint256 totalValueAfter = IERC20(y3Pool).balanceOf(address(this)).mul(newPPS);
+        uint256 totalValueBefore = IERC20(y3Pool).balanceOf(address(this)).mul(ppsTrack).div(1e18);
+        uint256 newPPS = Vault(y3Pool).getPricePerFullShare();
+        uint256 totalValueAfter = IERC20(y3Pool).balanceOf(address(this)).mul(newPPS).div(1e18);
         uint256 _preProfit = totalValueAfter.sub(totalValueBefore);
         _profit = (_preProfit).mul(995).div(1000);
         setTrack();
@@ -189,7 +189,7 @@ contract StrategyDAI3Pool is BaseStrategy {
     }
 
     function setTrack() internal {
-        ppsTrack = Vault(y3Pool).getPricePerFullShare().div(1e18);
+        ppsTrack = Vault(y3Pool).getPricePerFullShare();
     }
 
 }
