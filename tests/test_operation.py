@@ -82,6 +82,8 @@ def test_operation(pm, chain):
 
     chain.mine(1)
 
+    assert 1 == 2
+
     strategy.harvest({"from": gov})
     chain.mine(10)
 

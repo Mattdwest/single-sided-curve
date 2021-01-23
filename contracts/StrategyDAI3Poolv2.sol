@@ -74,11 +74,13 @@ contract StrategyDAI3Poolv2 is BaseStrategy {
 
         // inflating debt to cover slippage and fees
         uint256 valueMod = debt.mul(1020).div(1000);
-        if (currentValue > valueMod) {
-            uint256 _preProfit = (currentValue).sub(debt);
-            _withdrawSome(_preProfit);
-            uint256 balanceOfWantAfter = balanceOfWant();
-            _profit = balanceOfWantAfter.sub(balanceOfWantBefore);
+        //if (currentValue > valueMod) {
+            //uint256 _preProfit = (currentValue).sub(debt);
+            //_withdrawSome(_preProfit);
+            //uint256 balanceOfWantAfter = balanceOfWant();
+            //_profit = balanceOfWantAfter.sub(balanceOfWantBefore);
+        if (currentValue > debt) {
+            _profit = currentValue.sub(debt);
         }
         else {_profit == 0;}
 
