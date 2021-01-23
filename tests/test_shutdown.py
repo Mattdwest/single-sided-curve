@@ -67,12 +67,6 @@ def test_operation(pm, chain):
     yUSDT3.deposit(Wei("4000 ether"), {"from": alice})
     yUSDT3.deposit(Wei("10 ether"), {"from": tinytim})
 
-    # a = dai.balanceOf(address(bob))
-    # b = dai.balanceOf(address(alice))
-
-    # print(a)
-    # print(b)
-
     chain.mine(1)
 
     strategy.harvest({"from": gov})
@@ -81,6 +75,9 @@ def test_operation(pm, chain):
 
     strategy.setEmergencyExit({"from": gov})
     strategy.harvest({"from": gov})
+
+    assert dai.balanceOf(yUSDT3) > 0
+    assert yCRV3.balanceOf(strategy) == 0
 
     yUSDT3.withdraw({"from": alice})
 
