@@ -14,7 +14,7 @@ import "../../interfaces/curve/ICurve.sol";
 import "../../interfaces/yearn/Vault.sol";
 
 
-contract StrategyDAI3Poolv2 is BaseStrategy {
+contract StrategyDAI3Pool2 is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -24,7 +24,7 @@ contract StrategyDAI3Poolv2 is BaseStrategy {
     address public y3Pool;
     address public unirouter;
     address public crv3;
-    string public constant override name = "StrategyDAI3Poolv2";
+    string public constant override name = "StrategyDAI3Pool2";
 
     // adding protection against slippage attacks
     uint constant public DENOMINATOR = 10000;
@@ -98,9 +98,10 @@ contract StrategyDAI3Poolv2 is BaseStrategy {
        // Invest the rest of the want
        uint256 _wantAvailable = balanceOfWant().sub(_debtOutstanding);
         if (_wantAvailable > 0) {
-             // slippage protection on deposit. Not needed on withdrawal due to vault-level protection.
-            uint256 v = _wantAvailable.mul(1e18).div(ICurve(threePool).get_virtual_price());
-            ICurve(threePool).add_liquidity([_wantAvailable,0,0], v.mul(DENOMINATOR.sub(slip)).div(DENOMINATOR));
+            uint256 _availableFunds = IERC20(dai).balanceOf(address(this));
+            // slippage protection on deposit. Not needed on withdrawal due to vault-level protection.
+            uint256 v = _availableFunds.mul(1e18).div(ICurve(threePool).get_virtual_price());
+            ICurve(threePool).add_liquidity([_availableFunds,0,0], v.mul(DENOMINATOR.sub(slip)).div(DENOMINATOR));
             Vault(y3Pool).depositAll();
         }
     }

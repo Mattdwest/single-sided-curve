@@ -14,17 +14,17 @@ import "../../interfaces/curve/ICurve.sol";
 import "../../interfaces/yearn/Vault.sol";
 
 
-contract StrategyDAI3Poolv2 is BaseStrategy {
+contract StrategyUSDC3Poolv2 is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
 
-    address public dai;
+    address public usdc;
     address public threePool;
     address public y3Pool;
     address public unirouter;
     address public crv3;
-    string public constant override name = "StrategyDAI3Poolv2";
+    string public constant override name = "StrategyUSDC3Poolv2";
 
     // adding protection against slippage attacks
     uint constant public DENOMINATOR = 10000;
@@ -32,23 +32,23 @@ contract StrategyDAI3Poolv2 is BaseStrategy {
 
     constructor(
         address _vault, // vault is v2, address is 0xBFa4D8AA6d8a379aBFe7793399D3DdaCC5bBECBB
-        address _dai,
+        address _usdc,
         address _threePool,
         address _y3Pool,
         address _crv3
     ) public BaseStrategy(_vault) {
-        dai = _dai;
+        usdc = _usdc;
         threePool = _threePool;
         y3Pool = _y3Pool;
         crv3 = _crv3;
 
-        IERC20(dai).safeApprove(threePool, uint256(-1));
+        IERC20(usdc).safeApprove(threePool, uint256(-1));
         IERC20(crv3).safeApprove(y3Pool, uint256(-1));
     }
 
     function protectedTokens() internal override view returns (address[] memory) {
         address[] memory protected = new address[](2);
-        // dai (aka want) is already protected by default
+        // usdc (aka want) is already protected by default
         protected[0] = y3Pool;
         protected[1] = crv3;
         return protected;
@@ -98,9 +98,9 @@ contract StrategyDAI3Poolv2 is BaseStrategy {
        // Invest the rest of the want
        uint256 _wantAvailable = balanceOfWant().sub(_debtOutstanding);
         if (_wantAvailable > 0) {
-             // slippage protection on deposit. Not needed on withdrawal due to vault-level protection.
+            // slippage protection on deposit. Not needed on withdrawal due to vault-level protection.
             uint256 v = _wantAvailable.mul(1e18).div(ICurve(threePool).get_virtual_price());
-            ICurve(threePool).add_liquidity([_wantAvailable,0,0], v.mul(DENOMINATOR.sub(slip)).div(DENOMINATOR));
+            ICurve(threePool).add_liquidity([0,_wantAvailable,0], v.mul(DENOMINATOR.sub(slip)).div(DENOMINATOR));
             Vault(y3Pool).depositAll();
         }
     }
@@ -123,9 +123,12 @@ contract StrategyDAI3Poolv2 is BaseStrategy {
     }
 
 
-    // withdraw some dai from the vaults
+    // withdraw some usdc from the vaults
     function _withdrawSome(uint256 _amount) internal returns (uint256) {
+        //converting from 1e6 to 1e18
+        _amount = _amount.mul(1e12);
         uint256 balanceOfWantBefore = balanceOfWant();
+        //mul by 1e18 to negate 1e18 in the div due to .get_virtual_price
         uint256 _3PoolAmount = (_amount).mul(1e18).div(ICurve(threePool).get_virtual_price());
         uint256 y3PoolAmount = (_3PoolAmount).mul(1e18).div(Vault(y3Pool).getPricePerFullShare());
 
@@ -137,7 +140,7 @@ contract StrategyDAI3Poolv2 is BaseStrategy {
         Vault(y3Pool).withdraw(y3PoolAmount);
         uint256 threePoolBalance = IERC20(crv3).balanceOf(address(this));
         // slippage protection is at vault-level now.
-        ICurve(threePool).remove_liquidity_one_coin(threePoolBalance, 0, 0);
+        ICurve(threePool).remove_liquidity_one_coin(threePoolBalance, 1, 0);
         uint256 balanceAfter = balanceOfWant();
         return balanceAfter.sub(balanceOfWantBefore);
     }
@@ -164,7 +167,7 @@ contract StrategyDAI3Poolv2 is BaseStrategy {
         return (_balance).mul(ratio).div(1e18);
     }
 
-    // returns balance of dai
+    // returns balance of usdc
     function balanceOfWant() public view returns (uint256) {
         return want.balanceOf(address(this));
     }

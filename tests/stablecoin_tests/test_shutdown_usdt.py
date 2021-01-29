@@ -4,12 +4,12 @@
 import pytest
 
 from brownie import Wei, accounts, Contract, config
-from brownie import StrategyDAI3Pool
+from brownie import StrategyUSDT3Poolv2
 
 
 @pytest.mark.require_network("mainnet-fork")
 def test_operation(pm, chain):
-    dai_liquidity = accounts.at(
+    usdt_liquidity = accounts.at(
         "0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7", force=True
     )  # using curve pool (lots of dai)
 
@@ -21,14 +21,16 @@ def test_operation(pm, chain):
     strategist = accounts[7]
     tinytim = accounts[8]
 
-    dai = Contract("0x6b175474e89094c44da98b954eedeac495271d0f", owner=gov)  # DAI token
+    usdt = Contract("0xdac17f958d2ee523a2206206994597c13d831ec7", owner=gov)  # usdt token
 
-    dai.approve(dai_liquidity, Wei("1000000 ether"), {"from": dai_liquidity})
-    dai.transferFrom(dai_liquidity, gov, Wei("10000 ether"), {"from": dai_liquidity})
+    usdt.approve(usdt_liquidity, Wei("1000000 ether"), {"from": usdt_liquidity})
+    usdt.transferFrom(usdt_liquidity, gov, 10000000000, {"from": usdt_liquidity})
 
     # config yvDAI vault.
     Vault = pm(config["dependencies"][0]).Vault
-    yUSDT3 = gov.deploy(Vault, dai, gov, rewards, "", "")
+    yUSDT3 = Vault.deploy({"from": gov})
+    yUSDT3.initialize(usdt, gov, rewards, "", "")
+    yUSDT3.setDepositLimit(Wei("1000000 ether"))
 
     threePool = Contract(
         "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", owner=gov
@@ -43,55 +45,56 @@ def test_operation(pm, chain):
     #  "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", owner=gov
     # )  # UNI router v2
 
-    strategy = guardian.deploy(StrategyDAI3Pool, yUSDT3, dai, threePool, yCRV3, crv3)
+    strategy = guardian.deploy(StrategyUSDT3Poolv2, yUSDT3, usdt, threePool, yCRV3, crv3)
     strategy.setStrategist(strategist)
 
     yUSDT3.addStrategy(
-        strategy, Wei("1000000000 ether"), 2 ** 256 - 1, 50, {"from": gov}
+        strategy, 10_000, 0, 0, {"from": gov}
     )
 
-    dai.approve(gov, Wei("1000000 ether"), {"from": gov})
-    dai.transferFrom(gov, bob, Wei("1000 ether"), {"from": gov})
-    dai.transferFrom(gov, alice, Wei("4000 ether"), {"from": gov})
-    dai.transferFrom(gov, tinytim, Wei("10 ether"), {"from":gov})
-    dai.approve(yUSDT3, Wei("1000000 ether"), {"from": bob})
-    dai.approve(yUSDT3, Wei("1000000 ether"), {"from": alice})
-    dai.approve(yUSDT3, Wei("1000000 ether"), {"from": tinytim})
+    usdt.approve(gov, Wei("1000000 ether"), {"from": gov})
+    usdt.transferFrom(gov, bob, 1000000000, {"from": gov})
+    usdt.transferFrom(gov, alice, 4000000000, {"from": gov})
+    usdt.transferFrom(gov, tinytim, 10000000, {"from":gov})
+    usdt.approve(yUSDT3, Wei("1000000 ether"), {"from": bob})
+    usdt.approve(yUSDT3, Wei("1000000 ether"), {"from": alice})
+    usdt.approve(yUSDT3, Wei("1000000 ether"), {"from": tinytim})
     crv3.approve(gov, Wei("1000000 ether"), {"from": gov})
     yUSDT3.approve(gov, Wei("1000000 ether"), {"from": gov})
     crv3.approve(yCRV3, Wei("1000000 ether"), {"from": gov})
-    dai.approve(threePool, Wei("1000000 ether"), {"from": gov})
+    usdt.approve(threePool, Wei("1000000 ether"), {"from": gov})
 
     # users deposit to vault
-    yUSDT3.deposit(Wei("1000 ether"), {"from": bob})
-    yUSDT3.deposit(Wei("4000 ether"), {"from": alice})
-    yUSDT3.deposit(Wei("10 ether"), {"from": tinytim})
+    yUSDT3.deposit(1000000000, {"from": bob})
+    yUSDT3.deposit(4000000000, {"from": alice})
+    yUSDT3.deposit(10000000, {"from": tinytim})
 
     chain.mine(1)
 
     strategy.harvest({"from": gov})
 
-    assert 1 == 2
-
     strategy.setEmergencyExit({"from": gov})
     strategy.harvest({"from": gov})
 
-    assert dai.balanceOf(yUSDT3) > 0
+    assert usdt.balanceOf(yUSDT3) > 0
     assert yCRV3.balanceOf(strategy) == 0
 
     yUSDT3.withdraw({"from": alice})
 
-    assert dai.balanceOf(alice) > 0
-    assert dai.balanceOf(strategy) == 0
-    assert dai.balanceOf(yUSDT3) > 0
-    assert dai.balanceOf(bob) == 0
+    assert usdt.balanceOf(alice) > 0
+    assert usdt.balanceOf(strategy) == 0
+    assert usdt.balanceOf(yUSDT3) > 0
+    assert usdt.balanceOf(bob) == 0
 
     yUSDT3.withdraw({"from": bob})
 
-    assert dai.balanceOf(bob) > 0
-    assert dai.balanceOf(strategy) == 0
+    assert usdt.balanceOf(bob) > 0
+    assert usdt.balanceOf(strategy) == 0
 
-    assert 1 == 2
+    yUSDT3.withdraw({"from": tinytim})
+    assert usdt.balanceOf(tinytim) > 0
+
+    pass
 
     ##crv3.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
     ##crv3.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
