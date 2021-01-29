@@ -84,7 +84,7 @@ def test_operation(pm, chain):
     usdt.approve(threePool, Wei("1000000 ether"), {"from": gov})
     # depositing DAI to generate crv3 tokens.
     #crv3.approve(crv3_liquidity, Wei("1000000 ether"), {"from": crv3_liquidity})
-    threePool.add_liquidity([0, 0, 200000000000, 0, {"from": gov})
+    threePool.add_liquidity([0, 0, 200000000000], 0, {"from": gov})
     #giving Gov some shares to mimic profit
     #yCRV3.depositAll({"from": gov})
 

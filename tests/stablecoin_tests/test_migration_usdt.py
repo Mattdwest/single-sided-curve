@@ -66,7 +66,7 @@ def test_migration(pm, chain):
     usdt.approve(threePool, Wei("1000000 ether"), {"from": gov})
 
     # users deposit to vault
-    yUSDT3.deposit(100000000, {"from": bob})
+    yUSDT3.deposit(1000000000, {"from": bob})
     yUSDT3.deposit(4000000000, {"from": alice})
     yUSDT3.deposit(10000000, {"from": tinytim})
 

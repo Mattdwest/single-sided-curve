@@ -124,7 +124,6 @@ def test_operation(pm, chain):
     yUSDT3.withdraw(c, alice, 75, {"from": alice})
 
     assert usdc.balanceOf(alice) > 0
-    assert usdc.balanceOf(strategy) == 0
     assert usdc.balanceOf(bob) == 0
     assert yCRV3.balanceOf(strategy) > 0
 
@@ -132,13 +131,11 @@ def test_operation(pm, chain):
     yUSDT3.withdraw(d, bob, 75, {"from": bob})
 
     assert usdc.balanceOf(bob) > 0
-    assert usdc.balanceOf(strategy) == 0
 
     e = yUSDT3.balanceOf(tinytim)
     yUSDT3.withdraw(e, tinytim, 75, {"from": tinytim})
 
     assert usdc.balanceOf(tinytim) > 0
-    assert usdc.balanceOf(strategy) == 0
 
     # We should have made profit
     assert yUSDT3.pricePerShare() > 1

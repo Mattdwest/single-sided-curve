@@ -157,7 +157,7 @@ contract StrategyUSDC3Poolv2 is BaseStrategy {
     function balanceOfPool(uint256 extra) public view returns (uint256) {
         uint256 _balance = (extra).add(IERC20(crv3).balanceOf(address(this)));
         uint256 ratio = ICurve(threePool).get_virtual_price();
-        return (_balance).mul(ratio).div(1e18);
+        return (_balance).mul(ratio).div(1e30);
     }
 
     // returns value of total 3pool in vault
