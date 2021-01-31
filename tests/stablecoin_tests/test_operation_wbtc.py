@@ -10,7 +10,7 @@ from brownie import Wei, accounts, Contract, config
 from brownie import StrategyWBTCsBTCv2
 
 
-@pytest.mark.require_network("mainnet-fork")
+#@pytest.mark.require_network("mainnet-fork")
 def test_operation(pm, chain):
     wbtc_liquidity = accounts.at(
         "0x93054188d876f558f4a66b2ef1d97d16edf0895b", force=True
@@ -52,12 +52,12 @@ def test_operation(pm, chain):
     ysBTC = Contract(
         "0x7Ff566E1d69DEfF32a7b244aE7276b9f90e9D0f6", owner=gov
     )  # sbtc vault (threePool)
-    #crv3Strat = Contract(
-    #    "0xC59601F0CC49baa266891b7fc63d2D5FE097A79D", owner=gov
-    #)  # crv3 strat (threePool)
-    #crv3StratOwner = Contract(
-    #    "0xd0aC37E3524F295D141d3839d5ed5F26A40b589D", owner=gov
-    #)  # crv3 stratOwner (threePool)
+    crv3Strat = Contract(
+        "0x6D6c1AD13A5000148Aa087E7CbFb53D402c81341", owner=gov
+    )  # crv3 strat (threePool)
+    crv3StratOwner = Contract(
+        "0xd0aC37E3524F295D141d3839d5ed5F26A40b589D", owner=gov
+    )  # crv3 stratOwner (threePool)
     # uni = Contract.from_explorer(
     #  "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", owner=gov
     # )  # UNI router v2
@@ -98,14 +98,26 @@ def test_operation(pm, chain):
     chain.mine(1)
 
     strategy.harvest({"from": gov})
+    strategy.harvest({"from": gov})
+
+    assert ysBTC.balanceOf(strategy) > 0
     chain.mine(10)
+    chain.sleep(10)
 
     # small profit
     #yCRV3.approve(gov, Wei("1000000 ether"), {"from": gov})
     #yCRV3.transferFrom(gov, strategy, Wei("5000 ether"), {"from": gov})
-    #crv3Strat.harvest({"from": crv3StratOwner})
+    t = ysBTC.getPricePerFullShare()
+    c = strategy.estimatedTotalAssets()
+    crv3Strat.harvest({"from": crv3StratOwner})
+    s = ysBTC.getPricePerFullShare()
+    d = strategy.estimatedTotalAssets()
+    assert t < s
+    assert d > c
 
-    wbtc.transferFrom(gov, strategy, 500000000, {"from": gov})
+    assert yUSDT3.strategies(strategy).dict()['totalDebt'] < d
+
+    #wbtc.transferFrom(gov, strategy, 500000000, {"from": gov})
     strategy.harvest({"from": gov})
     chain.mine(10)
     strategy.harvest({"from": gov})
