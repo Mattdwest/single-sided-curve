@@ -93,16 +93,18 @@ def test_operation(pm, chain):
     yUSDT3.deposit(1000000000, {"from": alice})
     yUSDT3.deposit(1000000, {"from": tinytim})
 
-    a = yUSDT3.pricePerShare()
+    
 
     chain.mine(1)
 
     strategy.harvest({"from": gov})
+
     strategy.harvest({"from": gov})
 
     assert ysBTC.balanceOf(strategy) > 0
-    chain.mine(10)
-    chain.sleep(10)
+    chain.sleep(10_000)
+    chain.mine(1)
+    a = yUSDT3.pricePerShare()
 
     # small profit
     #yCRV3.approve(gov, Wei("1000000 ether"), {"from": gov})
@@ -119,9 +121,9 @@ def test_operation(pm, chain):
 
     #wbtc.transferFrom(gov, strategy, 500000000, {"from": gov})
     strategy.harvest({"from": gov})
-    chain.mine(10)
+    chain.mine(1)
     strategy.harvest({"from": gov})
-    chain.mine(10)
+    chain.mine(1)
 
     b = yUSDT3.pricePerShare()
 

@@ -65,6 +65,7 @@ contract StrategyWBTCsBTCv2 is BaseStrategy {
            uint256 _amountFreed = 0;
            (_amountFreed, _loss) = liquidatePosition(_debtOutstanding);
            _debtPayment = Math.min(_amountFreed, _debtOutstanding);
+           return (0, 0, _debtPayment);
         }
 
         // harvest() will track profit by estimated total assets compared to debt.
@@ -74,12 +75,14 @@ contract StrategyWBTCsBTCv2 is BaseStrategy {
 
         if (currentValue > debt) {
             _profit = currentValue.sub(debt);
+            (uint256 _liquidatedAmount,) = liquidatePosition(_profit);
+            _profit = _liquidatedAmount;
         }
         else {_profit == 0;}
 
         //Funds stay in yvCRV3 vault if not performing debt repayment.
         if (debt > currentValue) {
-            _loss == debt.sub(currentValue);
+            _loss = debt.sub(currentValue);
         }
         else {_loss == 0;}
     }
