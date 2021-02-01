@@ -72,6 +72,8 @@ contract StrategyWBTCsBTCv2 is BaseStrategy {
         uint256 balanceOfWantBefore = balanceOfWant();
         uint256 debt = vault.strategies(address(this)).totalDebt;
         uint256 currentValue = estimatedTotalAssets();
+        // forcing minimum 1% for natural harvest due to slippage
+        //uint256 valueMod = currentValue.mul(990).div(1000);
 
         if (currentValue > debt) {
             _profit = currentValue.sub(debt);

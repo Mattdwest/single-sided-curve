@@ -52,12 +52,12 @@ def test_operation(pm, chain):
     yCRV3 = Contract(
         "0x9cA85572E6A3EbF24dEDd195623F188735A5179f", owner=gov
     )  # crv3 vault (threePool)
-    #crv3Strat = Contract(
-    #    "0xC59601F0CC49baa266891b7fc63d2D5FE097A79D", owner=gov
-    #)  # crv3 strat (threePool)
-    #crv3StratOwner = Contract(
-    #    "0xd0aC37E3524F295D141d3839d5ed5F26A40b589D", owner=gov
-    #)  # crv3 stratOwner (threePool)
+    crv3Strat = Contract(
+        "0xC59601F0CC49baa266891b7fc63d2D5FE097A79D", owner=gov
+    )  # crv3 strat (threePool)
+    crv3StratOwner = Contract(
+        "0xd0aC37E3524F295D141d3839d5ed5F26A40b589D", owner=gov
+    )  # crv3 stratOwner (threePool)
     # uni = Contract.from_explorer(
     #  "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", owner=gov
     # )  # UNI router v2
@@ -98,18 +98,34 @@ def test_operation(pm, chain):
     chain.mine(1)
 
     strategy.harvest({"from": gov})
-    chain.mine(10)
+
+    assert yCRV3.balanceOf(strategy) > 0
+    chain.sleep(3600*24*7*10)
+    chain.mine(1)
+    a = yUSDT3.pricePerShare()
 
     # small profit
     #yCRV3.approve(gov, Wei("1000000 ether"), {"from": gov})
     #yCRV3.transferFrom(gov, strategy, Wei("5000 ether"), {"from": gov})
+    t = yCRV3.getPricePerFullShare()
+    c = strategy.estimatedTotalAssets()
+    crv3Strat.harvest({"from": crv3StratOwner})
+    s = yCRV3.getPricePerFullShare()
+    d = strategy.estimatedTotalAssets()
+    assert t < s
+    assert d > c
+
+    assert yUSDT3.strategies(strategy).dict()['totalDebt'] < d
+
+    #wbtc.transferFrom(gov, strategy, 500000000, {"from": gov})
+    #strategy.harvest({"from": gov})
+    #chain.mine(1)
+    #crv.approve(gov, Wei("1000000 ether"), {"from": gov})
+    #crv.transferFrom(gov, crv3Strategy, Wei("1000 ether"), {"from": gov})
     #crv3Strat.harvest({"from": crv3StratOwner})
 
-    usdc.transferFrom(gov, strategy, 5000000000, {"from": gov})
     strategy.harvest({"from": gov})
-    chain.mine(10)
-    strategy.harvest({"from": gov})
-    chain.mine(10)
+    chain.mine(1)
 
     b = yUSDT3.pricePerShare()
 

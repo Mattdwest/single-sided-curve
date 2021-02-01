@@ -77,19 +77,19 @@ def test_operation(pm, chain):
     strategy.harvest({"from": gov})
 
     assert usdc.balanceOf(yUSDT3) > 0
-    assert yCRV3.balanceOf(strategy) == 0
+    assert yCRV3.balanceOf(strategy) < (1e6)
 
     yUSDT3.withdraw({"from": alice})
 
     assert usdc.balanceOf(alice) > 0
-    assert usdc.balanceOf(strategy) == 0
+    assert usdc.balanceOf(strategy) < (1e6)
     assert usdc.balanceOf(yUSDT3) > 0
     assert usdc.balanceOf(bob) == 0
 
     yUSDT3.withdraw({"from": bob})
 
     assert usdc.balanceOf(bob) > 0
-    assert usdc.balanceOf(strategy) == 0
+    assert usdc.balanceOf(strategy) < (1e6)
 
     yUSDT3.withdraw({"from": tinytim})
     assert usdc.balanceOf(tinytim) > 0

@@ -5,7 +5,7 @@
 import pytest
 
 from brownie import Wei, accounts, Contract, config
-from brownie import StrategyDAI3Poolv2, StrategyDAI3Pool2
+from brownie import StrategyDAI3Poolv2
 
 
 @pytest.mark.require_network("mainnet-fork")
@@ -80,7 +80,7 @@ def test_migration(pm, chain):
 
     strategy.harvest({"from": gov})
 
-    newstrategy = guardian.deploy(StrategyDAI3Pool2, yUSDT3, dai, threePool, yCRV3, crv3)
+    newstrategy = guardian.deploy(StrategyDAI3Poolv2, yUSDT3, dai, threePool, yCRV3, crv3)
     newstrategy.setStrategist(strategist)
 
     yUSDT3.migrateStrategy(strategy, newstrategy, {"from": gov})

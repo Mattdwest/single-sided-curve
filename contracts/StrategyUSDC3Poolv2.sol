@@ -74,12 +74,14 @@ contract StrategyUSDC3Poolv2 is BaseStrategy {
 
         if (currentValue > debt) {
             _profit = currentValue.sub(debt);
+            (uint256 _liquidatedAmount,) = liquidatePosition(_profit);
+            _profit = _liquidatedAmount;
         }
         else {_profit == 0;}
 
         //Funds stay in yvCRV3 vault if not performing debt repayment.
         if (debt > currentValue) {
-            _loss == debt.sub(currentValue);
+            _loss = debt.sub(currentValue);
         }
         else {_loss == 0;}
     }

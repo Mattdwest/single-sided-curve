@@ -7,7 +7,7 @@
 import pytest
 
 from brownie import Wei, accounts, Contract, config
-from brownie import StrategyWBTCsBTCv2, StrategyWBTCsBTC2
+from brownie import StrategyWBTCsBTCv2
 
 
 @pytest.mark.require_network("mainnet-fork")
@@ -98,7 +98,7 @@ def test_operation(pm, chain):
     strategy.harvest({"from": gov})
     chain.mine(1)
 
-    newstrategy = guardian.deploy(StrategyWBTCsBTC2, yUSDT3, wbtc, sbtcPool, ysBTC, sbtc)
+    newstrategy = guardian.deploy(StrategyWBTCsBTCv2, yUSDT3, wbtc, sbtcPool, ysBTC, sbtc)
     newstrategy.setStrategist(strategist)
 
     yUSDT3.migrateStrategy(strategy, newstrategy, {"from": gov})

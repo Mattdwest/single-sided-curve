@@ -75,21 +75,22 @@ def test_operation(pm, chain):
 
     strategy.setEmergencyExit({"from": gov})
     strategy.harvest({"from": gov})
+    chain.mine(1)
 
     assert dai.balanceOf(yUSDT3) > 0
-    assert yCRV3.balanceOf(strategy) == 0
+    assert yCRV3.balanceOf(strategy) < (1e18)
 
     yUSDT3.withdraw({"from": alice})
 
     assert dai.balanceOf(alice) > 0
-    assert dai.balanceOf(strategy) == 0
+    assert dai.balanceOf(strategy) < (1e18)
     assert dai.balanceOf(yUSDT3) > 0
     assert dai.balanceOf(bob) == 0
 
     yUSDT3.withdraw({"from": bob})
 
     assert dai.balanceOf(bob) > 0
-    assert dai.balanceOf(strategy) == 0
+    assert dai.balanceOf(strategy) < (1e18)
 
     yUSDT3.withdraw({"from": tinytim})
     assert dai.balanceOf(tinytim) > 0
