@@ -15,7 +15,7 @@ import "../../interfaces/curve/ICurveAlt.sol";
 import "../../interfaces/yearn/Vault.sol";
 
 
-contract StrategyDAImUSDv2 is BaseStrategy {
+contract StrategyDAIgUSDv2 is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
@@ -26,7 +26,7 @@ contract StrategyDAImUSDv2 is BaseStrategy {
     address public crv3;
     address public altCrv;
     address public altCrvPool;
-    string public constant override name = "StrategyDAImUSDv2";
+    string public constant override name = "StrategyDAIgUSDv2";
 
     // adding protection against slippage attacks
     uint constant public DENOMINATOR = 10000;

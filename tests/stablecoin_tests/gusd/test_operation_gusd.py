@@ -20,9 +20,9 @@ def test_operation(pm, chain):
         "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490", force=True
     )  # yearn treasury (lots of crv3)
 
-    altCRV_liquidity = accounts.at(
-        "0xe6e6e25efda5f69687aa9914f8d750c523a1d261", force=True
-    )  # giant amount
+    #altCRV_liquidity = accounts.at(
+    #    "0x907ebd0ddfd74fdaa1abb8a7e2294475e179a9ea", force=True
+    #)  # giant amount
 
     rewards = accounts[2]
     gov = accounts[3]
@@ -42,14 +42,14 @@ def test_operation(pm, chain):
     )  # crv3 token address (threePool)
 
     altCRV = Contract(
-        "0x1AEf73d49Dedc4b1778d0706583995958Dc862e6", owner=gov
-    )  # altCRV token (mUSDCrv)
+        "0xD2967f45c4f384DEEa880F807Be904762a3DeA07", owner=gov
+    )  # altCRV token (gUSDCrv)
 
     crv3.approve(crv3_liquidity, Wei("1000000 ether"), {"from": crv3_liquidity})
     crv3.transferFrom(crv3_liquidity, gov, Wei("100 ether"), {"from": crv3_liquidity})
 
-    altCRV.approve(altCRV_liquidity, Wei("1000000 ether"), {"from": altCRV_liquidity})
-    altCRV.transferFrom(altCRV_liquidity, gov, Wei("1000 ether"), {"from": altCRV_liquidity})
+    #altCRV.approve(altCRV_liquidity, Wei("1000000 ether"), {"from": altCRV_liquidity})
+    #altCRV.transferFrom(altCRV_liquidity, gov, Wei("1000 ether"), {"from": altCRV_liquidity})
 
     # config dai vault.
     Vault = pm(config["dependencies"][0]).Vault
@@ -61,20 +61,18 @@ def test_operation(pm, chain):
         "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7", owner=gov
     )  # crv3 pool address (threePool)
     altCrvPool = Contract(
-        "0x8474DdbE98F5aA3179B3B3F5942D724aFcdec9f6", owner=gov
-    )  # atlCrvPool pool address (musdCrv)
+        "0x4f062658EaAF2C1ccf8C8e36D6824CDf41167956", owner=gov
+    )  # atlCrvPool pool address (gusdCrv)
     targetVault = Contract(
-        "0x0FCDAeDFb8A7DfDa2e9838564c5A1665d856AFDF", owner=gov
-    )  # target vault (musdCrv)
+        "0xcC7E70A958917cCe67B4B87a8C30E6297451aE98", owner=gov
+    )  # target vault (gusdCrv)
     targetVaultStrat = Contract(
-        "0xBA0c07BBE9C22a1ee33FE988Ea3763f21D0909a0", owner=gov
-    )  # targetVault strat (threePool)
+        "0xD42eC70A590C6bc11e9995314fdbA45B4f74FABb", owner=gov
+    )  # targetVault strat (gusd)
     targetVaultStratOwner = Contract(
         "0xFEB4acf3df3cDEA7399794D0869ef76A6EfAff52", owner=gov
     )  # targetVault stratOwner (threePool)
-    # uni = Contract.from_explorer(
-    #  "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", owner=gov
-    # )  # UNI router v2
+
 
     strategy = guardian.deploy(StrategyDAImUSDv2, yDAI, dai, threePool, targetVault, crv3, altCRV, altCrvPool)
     strategy.setStrategist(strategist)
@@ -97,13 +95,9 @@ def test_operation(pm, chain):
     dai.approve(threePool, Wei("1000000 ether"), {"from": gov})
     crv3.approve(altCrvPool, Wei("1000000 ether"), {"from": gov})
 
-
-
-    # depositing DAI to generate crv3 tokens.
-    #crv3.approve(crv3_liquidity, Wei("1000000 ether"), {"from": crv3_liquidity})
-    #threePool.add_liquidity([Wei("200000 ether"), 0, 0], 0, {"from": gov})
-    #giving Gov some shares to mimic profit
-    #yCRV3.depositAll({"from": gov})
+    targetVaultStrat.setStrategistReward(0, {"from": targetVaultStratOwner})
+    targetVaultStrat.setTreasuryFee(0, {"from": targetVaultStratOwner})
+    targetVaultStrat.setWithdrawalFee(0, {"from": targetVaultStratOwner})
 
     # users deposit to vault
     yDAI.deposit(Wei("1000 ether"), {"from": bob})
@@ -122,8 +116,6 @@ def test_operation(pm, chain):
     a = yDAI.pricePerShare()
 
     # small profit
-    #yCRV3.approve(gov, Wei("1000000 ether"), {"from": gov})
-    #yCRV3.transferFrom(gov, strategy, Wei("5000 ether"), {"from": gov})
     t = targetVault.getPricePerFullShare()
     c = strategy.estimatedTotalAssets()
     targetVaultStrat.harvest({"from": targetVaultStratOwner})
@@ -134,13 +126,6 @@ def test_operation(pm, chain):
 
     assert yDAI.strategies(strategy).dict()['totalDebt'] < d
 
-    #wbtc.transferFrom(gov, strategy, 500000000, {"from": gov})
-    #strategy.harvest({"from": gov})
-    #chain.mine(1)
-    #crv.approve(gov, Wei("1000000 ether"), {"from": gov})
-    #crv.transferFrom(gov, crv3Strategy, Wei("1000 ether"), {"from": gov})
-    #crv3Strat.harvest({"from": crv3StratOwner})
-
     strategy.harvest({"from": gov})
     chain.mine(1)
 
@@ -149,14 +134,14 @@ def test_operation(pm, chain):
     assert b > a
 
     #withdrawals have a slippage protection parameter, defaults to 1 = 0.01%.
-    #overwriting here to be 0.75%, to account for slippage + 0.5% v1 vault withdrawal fee.
+    #overwriting here to be 1.5%, to account for slippage from multiple hops.
+    #slippage also counts "beneficial" slippage, such as DAI being overweight in these pools
     #d = yUSDT3.balanceOf(alice)
 
     c = yDAI.balanceOf(alice)
 
-    assert 1 == 2
 
-    yDAI.withdraw(c, alice, 75, {"from": alice})
+    yDAI.withdraw(c, alice, 150, {"from": alice})
 
     assert dai.balanceOf(alice) > 0
     assert dai.balanceOf(strategy) == 0
@@ -164,13 +149,13 @@ def test_operation(pm, chain):
     assert targetVault.balanceOf(strategy) > 0
 
     d = yDAI.balanceOf(bob)
-    yDAI.withdraw(d, bob, 75, {"from": bob})
+    yDAI.withdraw(d, bob, 150, {"from": bob})
 
     assert dai.balanceOf(bob) > 0
     assert dai.balanceOf(strategy) == 0
 
     e = yDAI.balanceOf(tinytim)
-    yDAI.withdraw(e, tinytim, 75, {"from": tinytim})
+    yDAI.withdraw(e, tinytim, 150, {"from": tinytim})
 
     assert dai.balanceOf(tinytim) > 0
     assert dai.balanceOf(strategy) == 0
@@ -178,16 +163,11 @@ def test_operation(pm, chain):
     # We should have made profit
     assert yDAI.pricePerShare() > 1
 
+    #print("\ntinytim", dai.balanceOf(tinytim)/1e18)
+    #print("\nbob", dai.balanceOf(bob)/1e18)
+    #print("\nalice", dai.balanceOf(alice)/1e18)
+    #print("\nvault", targetVault.balanceOf(strategy)/1e18)
+
+    assert 1 == 2
+
     pass
-
-    ##crv3.transferFrom(gov, bob, Wei("100000 ether"), {"from": gov})
-    ##crv3.transferFrom(gov, alice, Wei("788000 ether"), {"from": gov})
-
-    # yUSDT.deposit(Wei("100000 ether"), {"from": bob})
-    # yUSDT.deposit(Wei("788000 ether"), {"from": alice})
-
-    # strategy.harvest()
-
-    # assert dai.balanceOf(strategy) == 0
-    # assert yUSDT3.balanceOf(strategy) > 0
-    # assert ycrv3.balanceOf(strategy) > 0
